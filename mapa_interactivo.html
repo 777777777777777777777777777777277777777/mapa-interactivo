@@ -1,0 +1,120 @@
+<!DOCTYPE html><html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mapa físic interactiu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    #map { height: 100vh; width: 100vw; }
+    .info {
+      background: white;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+  const map = L.map('map').setView([20, 0], 2);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  // Control de pregunta
+  const info = L.control({ position: 'topright' });
+  info.onAdd = function () {
+    const div = L.DomUtil.create('div', 'info');
+    div.innerHTML = '<b>Situar:</b><br>';
+    return div;
+  };
+  info.addTo(map);
+
+  // Datos (todos con el mismo icono)
+  const llocs = [
+    { nom: 'Everest', coords: [27.9881, 86.9250] },
+    { nom: 'K2', coords: [35.8808, 76.5158] },
+    { nom: 'Aconcagua', coords: [-32.6532, -70.0109] },
+    { nom: 'Elbrus', coords: [43.3499, 42.4453] },
+    { nom: 'Mont Blanc', coords: [45.8326, 6.8652] },
+    { nom: 'Kilimanjaro', coords: [-3.0674, 37.3556] },
+    { nom: 'Mont Vinson', coords: [-78.5250, -85.6170] },
+    { nom: 'Urals', coords: [60, 60] },
+    { nom: 'Atlas', coords: [31, -6] },
+    { nom: 'Massís Etíop', coords: [10, 35] },
+    { nom: 'Drakensberg', coords: [-29, 29] },
+    { nom: 'Rocalloses', coords: [45, -115] },
+    { nom: 'Andes', coords: [-15, -75] },
+    { nom: 'Alps', coords: [46, 8] },
+    { nom: 'Himàlaia', coords: [28, 75] },
+    { nom: 'Zagros', coords: [30, 45] },
+    { nom: 'Caucas', coords: [43, 42] },
+    { nom: 'Gran Serralada Divisòria', coords: [-25, 145] },
+    { nom: 'Altiplà del Tibet', coords: [30, 80] },
+    { nom: 'Altiplà dels Andes', coords: [-20, -70] },
+    { nom: 'Altiplà brasiler', coords: [-10, -55] },
+    { nom: 'Gran plana europea', coords: [50, 10] },
+    { nom: 'Sibèria Occidental', coords: [55, 65] },
+    { nom: 'Planes nord-americanes', coords: [40, -100] },
+    { nom: 'Planes sud-americanes', coords: [-35, -60] },
+    { nom: 'Plana xinesa', coords: [34, 105] }
+  ];
+
+  // Crear marcadores SIN popup (para que no revele el nombre)
+  llocs.forEach(lloc => {
+    lloc.marker = L.marker(lloc.coords).addTo(map);
+    lloc.marker.on('click', () => comprovar(lloc));
+  });
+
+  let pendents = [...llocs];
+  let encerts = 0;
+  let iniciTemps = Date.now(); // contador d'encerts
+  let actual;
+
+  function novaPregunta() {
+    document.querySelector('.info').innerHTML = '<b>Encerts:</b> ' + encerts + '<br>';
+    if (pendents.length === 0) {
+      const temps = Math.floor((Date.now() - iniciTemps) / 1000);
+      const millor = localStorage.getItem('millorRecord');
+      let missatge = '🎉 <b>Completat!</b><br>Encerts: ' + encerts + '<br>Temps: ' + temps + 's';
+
+      if (!millor || temps < millor) {
+        localStorage.setItem('millorRecord', temps);
+        missatge += '<br>🏆 <b>Nou rècord personal!</b>';
+      } else {
+        missatge += '<br>🏆 Rècord personal: ' + millor + 's';
+      }
+
+      document.querySelector('.info').innerHTML = missatge;
+      return;
+    }
+    actual = pendents[Math.floor(Math.random() * pendents.length)];
+    document.querySelector('.info').innerHTML += '<b>Situar:</b><br>' + actual.nom;(Math.random() * pendents.length)];
+    document.querySelector('.info').innerHTML = '<b>Situar:</b><br>' + actual.nom;
+  }
+
+  function comprovar(lloc) {
+    if (lloc === actual) {
+      map.removeLayer(lloc.marker);
+      encerts++;
+      pendents = pendents.filter(l => l !== lloc);
+      novaPregunta();
+
+  // Atajos de teclado
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'n' || e.key === 'N') {
+      novaPregunta();
+    }
+    if (e.key === 'r' || e.key === 'R') {
+      location.reload();
+    }
+  });
+    }
+    // Si és incorrecte: no passa res i NO es mostra cap nom
+  }
+
+  novaPregunta();
+</script></body>
+</html>
